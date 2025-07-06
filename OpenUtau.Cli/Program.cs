@@ -4,6 +4,7 @@ using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
@@ -21,6 +22,8 @@ using OpenUtau.Core.DiffSinger;
 namespace OpenUtau.Cli {
     class Program {
         static int Main(string[] args) {
+            // Enable legacy code-page encodings (e.g. shift_jis)
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             var root = new RootCommand("OpenUtau CLI: phonemize and DiffSinger render");
 
             var cmd = new Command("render", "Phonemize and render a .ustx using DiffSinger voicebank");
