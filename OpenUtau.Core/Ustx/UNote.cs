@@ -108,7 +108,7 @@ namespace OpenUtau.Core.Ustx {
         }
 
         static List<Phonemizer.PhonemeAttributes> attributesBuffer = new List<Phonemizer.PhonemeAttributes>();
-        internal Phonemizer.Note ToPhonemizerNote(UTrack track, UPart part) {
+        public Phonemizer.Note ToPhonemizerNote(UTrack track, UPart part) {
             string lrc = lyric;
             string phoneticHint = null;
             lrc = phoneticHintPattern.Replace(lrc, match => {
