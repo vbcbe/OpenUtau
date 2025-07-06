@@ -4,6 +4,7 @@ using System.CommandLine.Invocation;
 using System.CommandLine.NamingConventionBinder;
 using System.IO;
 using System.Linq;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 using NAudio.Wave;
@@ -52,7 +53,7 @@ namespace OpenUtau.Cli {
                 Environment.Exit(1);
             }
             var utrack = proj.tracks[track];
-            var part = utrack.VoiceParts.FirstOrDefault();
+            var part = proj.parts.OfType<UVoicePart>().FirstOrDefault(p => p.trackNo == track);
             if (part == null) {
                 Console.Error.WriteLine($"No voice part found on track {track}.");
                 Environment.Exit(1);
@@ -61,7 +62,7 @@ namespace OpenUtau.Cli {
             // 3) Override lyrics if specified
             if (!string.IsNullOrEmpty(lyrics)) {
                 var tokens = lyrics.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                var notes = part.notes;
+                var notes = part.notes.ToList();
                 if (tokens.Length != notes.Count) {
                     Console.Error.WriteLine($"Lyrics count ({tokens.Length}) does not match note count ({notes.Count}).");
                     Environment.Exit(1);
@@ -69,7 +70,7 @@ namespace OpenUtau.Cli {
                 for (int i = 0; i < notes.Count; i++) {
                     notes[i].lyric = tokens[i];
                 }
-                part.notes = notes;
+                part.notes = new SortedSet<UNote>(notes);
             }
 
             // 4) Load DiffSinger voicebank
