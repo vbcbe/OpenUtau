@@ -62,6 +62,7 @@ namespace OpenUtau.Classic {
                         return voicebank;
                     } catch (Exception e) {
                         Log.Error(e, $"Failed to load {filePath} info.");
+                        Console.Error.WriteLine($"ERROR: Failed to load voicebank info from '{filePath}': {e.Message}");
                         return null;
                     }
                 })
