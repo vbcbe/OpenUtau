@@ -75,6 +75,9 @@ namespace OpenUtau.Cli {
 
             // 4) Load DiffSinger voicebank
             Preferences.Default.LoadDeepFolderSinger = true;
+            Console.WriteLine($"DEBUG: scanning for character.txt under '{voicebank.FullName}'");
+            foreach (var f in Directory.EnumerateFiles(voicebank.FullName, "character.txt", SearchOption.AllDirectories))
+                Console.WriteLine($"DEBUG: found marker file: {f}");
             var loader = new VoicebankLoader(voicebank.FullName);
             var vbs = loader.SearchAll().ToList();
             if (!vbs.Any()) {
