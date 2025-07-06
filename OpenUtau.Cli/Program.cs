@@ -125,6 +125,11 @@ namespace OpenUtau.Cli {
             }).ToArray();
 
             // 7) Write timings JSON
+            if (phonemes.Length == 0) {
+                Console.Error.WriteLine(
+                    "ERROR: No phonemes generated! Ensure your track's phonemizer is set correctly and your voicebank folder includes the phonemizer config (e.g. enuconfig.yaml, enunux.yaml, dictionary, stats, etc.)");
+                Environment.Exit(1);
+            }
             File.WriteAllText(outTimings.FullName, JsonSerializer.Serialize(phonemes, new JsonSerializerOptions { WriteIndented = true }));
             Console.WriteLine($"Timings written to '{outTimings}'.");
 
