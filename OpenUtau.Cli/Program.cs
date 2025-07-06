@@ -93,9 +93,28 @@ namespace OpenUtau.Cli {
 
             // 6) Phonemize note groups
             Console.WriteLine("Phonemizing...");
-            var noteGroups = part.GetNoteClusters().Select(c => c.Notes).ToList();
+            // 6) Phonemize note clusters (group tied notes)
+            var noteIndexes = new List<int>();
+            var noteGroups = new List<Phonemizer.Note[]>();
+            int noteIndex = 0;
+            foreach (var note in part.notes) {
+                if (note.OverlapError || note.Extends != null) {
+                    noteIndex++;
+                    continue;
+                }
+                var cluster = new List<UNote> { note };
+                var nextNote = note.Next;
+                while (nextNote != null && nextNote.Extends == note) {
+                    cluster.Add(nextNote);
+                    nextNote = nextNote.Next;
+                }
+                var clusterNotes = cluster.Select(n => n.ToPhonemizerNote(utrack, part)).ToArray();
+                noteGroups.Add(clusterNotes);
+                noteIndexes.Add(noteIndex);
+                noteIndex++;
+            }
             var phonemes = noteGroups.SelectMany(group => {
-                var result = phonemizer.Process(group.ToArray(), null, null, null, null, Array.Empty<Phonemizer.Note>());
+                var result = phonemizer.Process(group, null, null, null, null, Array.Empty<Phonemizer.Note>());
                 return result.phonemes;
             }).ToArray();
 
