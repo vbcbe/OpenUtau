@@ -1,6 +1,7 @@
 using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.NamingConventionBinder;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -8,7 +9,7 @@ using System.Threading;
 using NAudio.Wave;
 using OpenUtau.Classic;
 using OpenUtau.Core;
-using OpenUtau.Core.Api;
+using OpenUtau.Api;
 using OpenUtau.Core.Format;
 using OpenUtau.Core.Render;
 using OpenUtau.Core.SignalChain;
@@ -38,19 +39,19 @@ namespace OpenUtau.Cli {
         static void RunRender(FileInfo project, int track, string lyrics, FileInfo phonemizerModel, DirectoryInfo voicebank, FileInfo outTimings, FileInfo outWav) {
             // 1) Load project
             Console.WriteLine($"Loading project '{project}'...");
-            var docs = Formats.LoadProject(new[] { project.FullName });
-            if (!docs.Any()) {
+            var docs = Formats.ReadProjects(new[] { project.FullName });
+            if (docs == null || docs.Length == 0) {
                 Console.Error.WriteLine("Failed to load project.");
                 Environment.Exit(1);
             }
-            var proj = docs.First();
+            var proj = docs[0];
 
             // 2) Locate track and part
-            if (track < 0 || track >= proj.Tracks.Count) {
+            if (track < 0 || track >= proj.tracks.Count) {
                 Console.Error.WriteLine($"Track index {track} is out of range.");
                 Environment.Exit(1);
             }
-            var utrack = proj.Tracks[track];
+            var utrack = proj.tracks[track];
             var part = utrack.VoiceParts.FirstOrDefault();
             if (part == null) {
                 Console.Error.WriteLine($"No voice part found on track {track}.");
@@ -60,7 +61,7 @@ namespace OpenUtau.Cli {
             // 3) Override lyrics if specified
             if (!string.IsNullOrEmpty(lyrics)) {
                 var tokens = lyrics.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                var notes = part.Notes;
+                var notes = part.notes;
                 if (tokens.Length != notes.Count) {
                     Console.Error.WriteLine($"Lyrics count ({tokens.Length}) does not match note count ({notes.Count}).");
                     Environment.Exit(1);
@@ -68,7 +69,7 @@ namespace OpenUtau.Cli {
                 for (int i = 0; i < notes.Count; i++) {
                     notes[i].lyric = tokens[i];
                 }
-                part.Notes = notes;
+                part.notes = notes;
             }
 
             // 4) Load DiffSinger voicebank
@@ -103,7 +104,7 @@ namespace OpenUtau.Cli {
 
             // 8) Build RenderPhrase
             Console.WriteLine("Building render phrase...");
-            var renderPhrase = new RenderPhrase(proj, utrack, part, part.Phonemes.ToList());
+            var renderPhrase = new RenderPhrase(proj, utrack, part, part.phonemes.ToList());
 
             // 9) Render with DiffSinger
             Console.WriteLine("Rendering with DiffSinger...");
